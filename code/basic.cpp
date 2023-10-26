@@ -6,6 +6,7 @@ bool IsNo(string);                      // if is present in {"nie", "n"}
 bool IsOZ(char);                        // if is one or zero
 bool IsNr(char);                        //   
 bool IsLetter(char);                    //
+bool IsSwitch(string);                  //
                                     
 string RawString(string);               // removes blank chars: {' ', '\n', '\t'}
 void SetToFalse(bool*, int);            // sets a dynamic bool array to false
@@ -24,6 +25,11 @@ bool IsOZ(char a) {return (a == '1' || a == '0');}
 bool IsNr(char a) {return (a >= '0' && a <= '9');}
 bool IsBlank(char a) {return (a == ' ' || a == '\n' || a == '\t' || (int)a == 0);}
 bool IsLetter(char a) {return ((a >= 'a' && a <= 'z') || (a >= 'A' && a <= 'Z'));}
+bool IsSwitch(string a) {
+    a = RawString(a);
+    if (a[0] == 'S' && a[1] == '/') return !SWITCH;
+    else return SWITCH;
+}
 
 
 bool TheSameChar(char a, char b, bool CAPIT) {

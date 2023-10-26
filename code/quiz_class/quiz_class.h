@@ -8,7 +8,8 @@ private:
     // in the first line of the file with answers -- for example: "1 0 1" for 1=true and 0=false; by default it's "0 0 0"
     bool BLANK;                             // if blank chars matter in answers
     bool CAPIT;                             // if capital letters matter in answers
-    bool TYPOS;                             // if typos ALWAYS aren't allowed in answers (they aren't allowed only in answers with numbers by default)
+    bool TYPOS;                             // if typos are strictly not allowed in answers
+    bool SWITCH;                            // if by default the code should make an invert answer-question set (S/)
     int MISTAKES;                           // if typos is set to false; maximum number of mistakes in an answer
 
     vector<pair<string, string>> qs;        // question set

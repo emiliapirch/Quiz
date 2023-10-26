@@ -91,9 +91,10 @@ bool CorrectInput(string s) {
 
     bool* used = new bool[amm_parts+1];
     SetToFalse(used, amm_parts+1);
-    s += ' '; // triggers end of a number at the end of input
+    s += ' '; // triggers an end of a number at the end of input
     string nr = "";
     for (int i=0; i<s.size(); i++) {
+         
         if (s[i] == ' ') {
             if (nr == "" || (nr.size() == 1 && (int)nr[0] == 0)) continue;
             else if (stoi(nr) > amm_parts || used[stoi(nr)]) {
@@ -103,7 +104,9 @@ bool CorrectInput(string s) {
             used[stoi(nr)] = true;
             nr = "";
         }
-        else if (s[i] < '1' || s[i] > '9') {
+
+        else if (s[i] < '1' || s[i] > '9' || s[i] == '0' && nr.size() == 0) {
+            cout << (int)s[i] << endl;
             delete[] used;
             return false;
         }
@@ -287,11 +290,11 @@ void quiz::AskParts() {
     if (RawString(input)[0] == 'w') {
         input = "";
         for (int i=1; i<=parts.size()-2; i++){
-            input += char(i+48);
-            input += ' ';
+           input += to_string(i);
+           input += ' ';
         } 
-
     }
+
     BuildQue(input);
 }
 

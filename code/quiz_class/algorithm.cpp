@@ -105,7 +105,7 @@ void quiz::StartQuiz() {
 
             // '.' tells that the answer was correct; undo
             if (cinget.size() == 1 && cinget[0] == '.') {
-                SCORE++;
+                SCORE+=2;
                 continue;
             }
 
@@ -297,19 +297,25 @@ void quiz::Round() {
             st.push(pq.top());
             pq.pop();
         }
+
         curr = pq.top();        
         pq.pop();
 
+        while (!st.empty()) {
+            pq.push(st.top());
+            st.pop();
+        }
+
         string answer = AskQuestion(curr.first);
         short correct = CheckAnswer(answer, qs[curr.first].second, IsK(qs[curr.first].first));
+
+        in_lastf[curr.first] = true;
+        lastf.push(curr.first);
 
         if (lastf.size() > F) {
             in_lastf[lastf.front()] = false;
             lastf.pop();
         }
-
-        in_lastf[curr.first] = true;
-        lastf.push(curr.first);
         
         if (correct == 1) {
             SCORE++;
@@ -328,16 +334,12 @@ void quiz::Round() {
             
             // '.' tells that the answer was correct; undo
             if (RawString(cinget)[0] == '.') {
-                SCORE++;
+                SCORE+=2;
                 curr.second += priority_v++;
             }
         }
 
         pq.push(curr);
-        while (!st.empty()) {
-            pq.push(st.top());
-            st.pop();
-        }
     }
 }
 

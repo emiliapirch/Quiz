@@ -6,14 +6,13 @@ bool IsNo(string);                      // if is present in {"nie", "n"}
 bool IsOZ(char);                        // if is one or zero
 bool IsNr(char);                        //   
 bool IsLetter(char);                    //
-bool IsSwitch(string);                  //
                                     
 string RawString(string);               // removes blank chars: {' ', '\n', '\t'}
 void SetToFalse(bool*, int);            // sets a dynamic bool array to false
 bool tnInput();                         // gets (t/n) input and returns true if an answer is positive and false if is negative
 bool HasNr(string);                     // checks if a string contains a number
 bool TheSameChar(char, char, bool);     // arguments: first and second char, CAPIT
-void CheckExit(string, string, bool);   // check if 'e' was typed as an answer
+void CheckExit(string, string, bool);   // check if 'q' was typed as an answer
 string LowerCase(string);               // sets all letters to lowercase 
                                     
 
@@ -25,12 +24,6 @@ bool IsOZ(char a) {return (a == '1' || a == '0');}
 bool IsNr(char a) {return (a >= '0' && a <= '9');}
 bool IsBlank(char a) {return (a == ' ' || a == '\n' || a == '\t' || (int)a == 0);}
 bool IsLetter(char a) {return ((a >= 'a' && a <= 'z') || (a >= 'A' && a <= 'Z'));}
-bool IsSwitch(string a) {
-    a = RawString(a);
-    if (a[0] == 'S' && a[1] == '/') return !SWITCH;
-    else return SWITCH;
-}
-
 
 bool TheSameChar(char a, char b, bool CAPIT) {
     if (CAPIT && IsLetter(a) && IsLetter(b)) return (a == b || int(a)+32 == int(b) || int(a)-32 == int(b));
@@ -73,7 +66,7 @@ void CheckExit(string input, string answer="", bool BLANK = false) {
         input = RawString(input);
         answer = RawString(answer);
     }
-    if (input != answer && input.size() == 1 && input[0] == 'e') exit(0);
+    if (input != answer && input.size() == 1 && input[0] == 'q') exit(0);
 }
 
 string LowerCase(string s) {

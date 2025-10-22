@@ -6,11 +6,12 @@
 #include <vector>
 #include <queue>
 
+
 #include "quiz_class.h"
 using namespace std;
 
 struct comp;
-// TODO: polskie znaki
+
 // basic.cpp
 bool IsYes(string);
 bool IsNo(string);
@@ -23,17 +24,17 @@ bool HasNr(string);
 void CheckExit(string, string, bool);
 string LowerCase(string);
 
-// for main functions
-inline void AssignPq(int);                            // assignes pq with i*{i, 0} for i in {0, arg}
+// used by main functions
+inline void AssignPq(int);                            // assigns pq with i*{i, 0} for i in {0, arg}
 void PrintPq();
 bool IsK(string);                                     // checks if there are "K/" in the line
-vector<string> DivideIntoWords(string, bool);         // divides into words by ','
-bool TheSameString(string, string, bool, bool, bool, int); // for the CheckAnswer()
+vector<string> DivideIntoWords(string, bool);         // divides into words using the ',' char
+bool TheSameString(string, string, bool, bool, bool, int); // used by CheckAnswer()
 
 // class
 // private:
 //      void quiz::MixQs();                     // mixes qs's elements using rand()
-//      string quiz::AskQuestion(int);          // clears screen, asks question and returns an answer
+//      string quiz::AskQuestion(int);          // clears the screen, asks question and returns an answer
 //      short CheckAnswer(string, string);      // checks if the answer is correct, returns -1 if the correct answer has already been shown
 //      void quiz::Round();                     // an infinity loop
 // public:
@@ -47,7 +48,8 @@ struct comp {
                     const pair<int, unsigned int>& p2) const
     { return p1.second > p2.second; }
 };
-// sorts from the smallest to the highest value by the second variable; allows duplications
+
+// sorts from the smallest to the highest value by the second variable; allows duplicates
 priority_queue<pair<int, unsigned int>, vector<pair<int, unsigned int>>, comp> pq;
 
 
@@ -55,23 +57,38 @@ priority_queue<pair<int, unsigned int>, vector<pair<int, unsigned int>>, comp> p
 
 
 
-/************************************************************************************************/
 
-// DEBUG 
-void PrintPq() {
+/*********************************************************************************************************/
 
+string FirstFifty(string s) {
+    int e;
+    string res;
+    if (s.size() < 50) e = s.size();
+    else e = 50;
+
+    for (int i=0; i<e; i++)
+        res += s[i];
+    return res;
+}
+
+// ***** DEBUG 
+void quiz::PrintPq() {
     priority_queue<pair<int, unsigned int>, vector<pair<int, unsigned int>>, comp> pq1;
     pq1 = pq;
     cout << "\n----\n" << pq.size() << "\n";
+
     while(!pq.empty()) {
-        cout << pq.top().first +1<< " , " << pq.top().second << '\n';
+        string question = qs[pq.top().first].first;
+        cout << pq.top().first +1<< " [" << FirstFifty(question) << "]: " << pq.top().second << '\n';
         pq.pop();
     }
+
     pq = pq1;
     cout << "\n----\n";
     cin.get();
 }
 
+/*********************************************************************************************************/
 
 inline void AssignPq(int size) {for (int i=0; i<size; i++) pq.push({i, 0});}
 
@@ -96,7 +113,7 @@ void quiz::StartQuiz() {
             }
         }
         else {
-            SCORE--;
+            // SCORE--;
 
             string correct_answer = qs[i].second;
             if (correct!=-1) cout << correct_answer << '\n';
@@ -105,7 +122,7 @@ void quiz::StartQuiz() {
 
             // '.' tells that the answer was correct; undo
             if (cinget.size() == 1 && cinget[0] == '.') {
-                SCORE+=2;
+                SCORE+=1;
                 continue;
             }
 
@@ -122,7 +139,7 @@ void quiz::StartQuiz() {
 
 void quiz::MixQs() {
     srand(time(NULL));
-    for (int i=0; i<qs.size()-2; i++) {
+    for (int i = 0; i < qs.size()-2; i++) {
         int r = rand() % (qs.size()-i) + i;
         swap(qs[i], qs[r]);
     }
@@ -171,7 +188,7 @@ bool TheSameString(string a, string c, bool blank, bool capit, bool typos, int m
     else {
         int mistakes = 0;
 
-        for (int i=0; i<min(a.size(), c.size()); i++) { // TODO: may not working properly. Add a better typos detect algorithm
+        for (int i = 0; i < min(a.size(), c.size()); i++) { // TODO: may not working properly. Add a better typos detection algorithm
             if (a[i] != c[i]) {
                 if (i>0 && a[i-1] == c[i]) continue;
                 else if (i<a.size()-1 && a[i+1] == c[i]) continue;
@@ -280,19 +297,20 @@ bool IsK(string question) {
 }
 
 void quiz::Round() {
-    const int QS_SIZE = qs.size();                      
-    const int F = max(int(0.2 * double(QS_SIZE + 1)), 1);   // a question can't be asked if it was asked in F (20% of number of questions) rounds
+    const int PQ_SIZE = pq.size();                      
+    const int F = max(int(0.1 * double(PQ_SIZE + 1)), 1);   // a question can't be asked if it was asked in F (20% of number of questions) rounds
+    cout << "pq.size() " << pq.size() << endl;
 
     queue<int> lastf;                                   
-    bool in_lastf[QS_SIZE];                             
-    SetToFalse(in_lastf, QS_SIZE);
+    bool in_lastf[qs.size()+1];                             
+    SetToFalse(in_lastf, qs.size());
 
     stack<pair<int, int>> st;                           // stack used to find pq.top() which wasn't asked in last F rounds
     pair<int, int> curr;                                
     unsigned /*long long*/ int priority_v = 1;          
                                                 
     while (1) {
-        // find using <stack> an element which isnt in lastf 
+        // find, using <stack>, an element which is not present in lastf 
         while (in_lastf[pq.top().first] && pq.size() > 1) { 
             st.push(pq.top());
             pq.pop();
@@ -320,22 +338,35 @@ void quiz::Round() {
         if (correct == 1) {
             SCORE++;
             curr.second += priority_v++;
+
+            cout << "\nupdated priority: " << curr.second << ' ' << "priority_v: " << priority_v << '\n';
+            PrintPq();
         }
         else {
-            SCORE--;
+            // SCORE--;
             
             string correct_answer = qs[curr.first].second;
 
             if (answer.size()) cout << '\n';
             if (correct == 0) cout << correct_answer << '\n';
 
+            if (priority_v / 5 > curr.second) {
+                curr.second = 0;
+            }
+            else curr.second -= priority_v / 5; // TODO: im not sure if it makes sense
+
             string cinget;
             getline(cin, cinget);
             
-            // '.' tells that the answer was correct; undo
+            // '.' means that the answer was correct; undo
             if (RawString(cinget)[0] == '.') {
                 SCORE+=2;
+                curr.second += priority_v / 2;
                 curr.second += priority_v++;
+
+                // debug
+                cout << "\nteraz: " << curr.second << endl;
+                PrintPq();
             }
         }
 

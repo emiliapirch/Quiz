@@ -10,14 +10,15 @@ bool IsOZ(char);
 bool IsNr(char);
 bool tnInput();
 
-string GetExactLine(int);               // getline() but for the exact line in file
+string GetExactLine(int);               // getline() but for the exact line in a file
 bool ActiveLine(string);                // checks if the line is not a comment, is not empty and has the '-' char
                                 
-// for main functions
-bool CorrectInput(string);              // checks if parts on input are typed correctly
+// used by main functions
+bool CorrectInput(string);              // checks if parts from input are typed correctly
 vector<int> MakeParts();                // returns sizes for parts; [0] is a minimum size and [1] is a maximal size 
 vector<int> BegParts();                 // returns a vector of numbers of lines in the file which are beginnings of the parts
 pair<string, string> ToQs(string);      // divides a line into a question and it's answer
+void SetSRCPATH();                      // writes SRCPATH value 
 
 // class
 // void quiz::OpenFiles();              // checks if source.txt and answers are able to open and then updates the BLANK, CAPIT and TYPOS variables
@@ -27,7 +28,7 @@ pair<string, string> ToQs(string);      // divides a line into a question and it
 
 // global variables
 int Q = 0;                              // number of active lines in the answer file
-string SRC;                             // source.txt's content
+string SRCPATH;                         // an extracted path from source.zsh; written by SetSRCPATH()
                                         
 
 
@@ -37,7 +38,7 @@ quiz::quiz() {
     MISTAKES = 1;
 
     BLANK = false;
-    CAPIT = false; // different than rest because tells if capitals ARE ALLOWED
+    CAPIT = false; 
     TYPOS = false;
     SCORE = 0;
 
@@ -48,9 +49,10 @@ quiz::quiz() {
 
 string GetExactLine(int n) {
     ifstream file;
-    file.open(SRC, ios::in);
+
+    file.open(SRCPATH, ios::in);
     if (!file.is_open()) {
-        cout << "Plik source.txt jest błędny.\n";
+        cout << "Plik source.zsh jest błędny.\n";
         exit(0);
     }
 
@@ -69,15 +71,19 @@ string GetExactLine(int n) {
 }
 
 bool ActiveLine(string line) {
-    if ((line[0] == '/' && line[1] == '/') || line.size() == 0 || line[0] == '\n') return false;
+    if ((line[0] == '/' && line[1] == '/') || line.size() == 0 || line[0] == '\n') 
+        return false;
+
     line = RawString(line);
+
     for (int i=0; i<line.size(); i++) {
         if (line[i] == '-') return true;
     }
+
     return false;
 }
 
-/***************************************************************************************** for main *******/
+/***************************************************************************************** used by main functions *******/
 
 bool CorrectInput(string s) {
     const int amm_parts = Q/10 + 1;
@@ -86,15 +92,14 @@ bool CorrectInput(string s) {
     if (sraw.size() == 0) return false;
     if (sraw[0] == 'w' && sraw.size() == 1) return true; 
     
-    // 'e' == end of the program
-    else if (sraw[0] == 'e' && sraw.size() == 1) exit(0);
+    // 'q' == end of the program
+    else if (sraw[0] == 'q' && sraw.size() == 1) exit(0);
 
     bool* used = new bool[amm_parts+1];
     SetToFalse(used, amm_parts+1);
     s += ' '; // triggers an end of a number at the end of input
     string nr = "";
     for (int i=0; i<s.size(); i++) {
-         
         if (s[i] == ' ') {
             if (nr == "" || (nr.size() == 1 && (int)nr[0] == 0)) continue;
             else if (stoi(nr) > amm_parts || used[stoi(nr)]) {
@@ -105,8 +110,8 @@ bool CorrectInput(string s) {
             nr = "";
         }
 
-        else if (s[i] < '1' || s[i] > '9' || s[i] == '0' && nr.size() == 0) {
-            cout << (int)s[i] << endl;
+        else if (s[i] < '0' || s[i] > '9' || s[i] == '0' && nr.size() == 0) {
+            cout << "bląd: " << (int)s[i] << endl;
             delete[] used;
             return false;
         }
@@ -128,6 +133,10 @@ pair<string, string> ToQs(string s) {
     }
 
     if (res.second == "" || res.first == "" || RawString(res.second).size() == 0) return {"", ""};
+    // here!!
+    while (res.second[0] == ' ') {
+        res.second.erase(0, 1);
+    }
     return res;
 }
 
@@ -167,8 +176,9 @@ vector<int> BegParts() {
     res.assign(parts.size()-2, -1);
 
     ifstream file;
-    file.open(SRC, ios::in);
+    file.open(SRCPATH, ios::in);
     if (!file.is_open()) {
+        cout << "debug";
         cout << "Plik source.txt jest błędny.\n";
         exit(0);
     }
@@ -197,27 +207,55 @@ vector<int> BegParts() {
     return res;
 }
 
+
+
+void SetSRCPATH() {
+    string res, line;
+
+    ifstream content;
+    content.open("/home/emi/Codes/git/Quiz/quiz/source.sh", ios::in);
+    if (!content.is_open()) {
+        cout << "Plik source.zsh nie istnieje.\n";
+        exit(0);
+    }
+
+    for (int i = 0; i <= 2; i++) {
+        getline(content, line);
+
+        if (i != 0) {
+            bool wasSpace = false;
+            for (int j = 0; j < line.size(); j++) {
+                if (wasSpace) {
+                    res += line[j]; 
+                }
+
+                if (line[j] == ' ') {
+                    wasSpace = true;
+                }
+            }
+        }
+    }
+
+    SRCPATH = res;
+}
+
 /**************************************************************************************** class ***********/
 
 void quiz::OpenFiles() {
     string line;
-    ifstream srcfile, file;
+    ifstream srcfile;
 
-    srcfile.open("source.txt", ios::in);
+    SetSRCPATH();
+
+    srcfile.open(SRCPATH, ios::in);
     if (!srcfile.is_open()) {
-        cout << "Plik source.txt nie istnieje.\n";
+        cout << "Plik z source.zsh nie istnieje.\n";
         exit(0);
     }
-    getline(srcfile, SRC);
-    
-    file.open(SRC, ios::in);
-    if (!file.is_open()) {
-        cout << "Plik "<< SRC <<" nie istnieje.\n";
-        exit(0);
-    }
+
 
     bool first = true;
-    while (getline(file, line)) {
+    while (getline(srcfile, line)) {
         if (ActiveLine(line)) Q++;
 
         else if (first) {
@@ -231,7 +269,7 @@ void quiz::OpenFiles() {
                 }
                 else {
                     // mistake in the first line 
-                    cout << "UWAGA: W linii pierwszej w pliku " << SRC << " jest błąd.\nChcesz kontynuować? (t/n)\n";
+                    cout << "UWAGA: W linii pierwszej w pliku " << SRCPATH << " jest błąd.\nChcesz kontynuować? (t/n)\n";
                     bool tn_answer = tnInput();
                     if (!tn_answer) exit(0);
                     else system("clear");
@@ -243,11 +281,10 @@ void quiz::OpenFiles() {
     }
     // question_set.txt is empty
     if (first) {
-        cout << "Plik "<< SRC <<" jest pusty.\n";
+        cout << "Plik "<< SRCPATH <<" jest pusty.\n";
         exit(0);
     }
     srcfile.close();
-    file.close();
 }
 
 void quiz::AskParts() {
@@ -257,6 +294,11 @@ void quiz::AskParts() {
 
     if (P_SIZE == 1) {
         const int Q_SIZE = parts[0];
+        if (Q_SIZE == 0) {
+            cout << "Plik "<< SRCPATH <<" jest pusty.\n";
+            exit(0);
+        }
+
         if (Q_SIZE == 1) {
             cout << "W pliku znajduje się tylko jedno pytanie.\n";
             exit(0);
@@ -271,7 +313,7 @@ void quiz::AskParts() {
         getline(cin, cinget);
         input = "1";
 
-        if (RawString(cinget).size() == 1 && (cinget[0] == 'e' || cinget[0] == 'n') || RawString(cinget) == "nie") exit(0);
+        if (RawString(cinget).size() == 1 && (cinget[0] == 'q' || cinget[0] == 'n') || RawString(cinget) == "nie") exit(0);
     }
     else {
         cout << "Quiz został podzielony na " << P_SIZE << " części po " << parts[0];
@@ -318,7 +360,12 @@ void quiz::BuildQue(string input) {
         else nr += input[i];
     }
 
-    /* for (auto i:qs) cout << i.first << '\n' << i.second << "\n\n";
-    cin.get(); */
+    //DEBUG
+    /* 
+    cout << qs.size() << '\n';
+
+    for (auto i:qs) cout << i.first << '\n' << i.second << "\n\n";
+    cin.get();
+    */
 }
 

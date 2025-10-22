@@ -9,7 +9,6 @@ private:
     bool BLANK;                             // if blank chars matter in answers
     bool CAPIT;                             // if capital letters matter in answers
     bool TYPOS;                             // if typos are strictly not allowed in answers
-    bool SWITCH;                            // if by default the code should make an invert answer-question set (S/)
     int MISTAKES;                           // if typos is set to false; maximum number of mistakes in an answer
 
     vector<pair<string, string>> qs;        // question set
@@ -25,6 +24,7 @@ private:
     short CheckAnswer(string, string, bool);      // checks if the answer is correct, returns -1 if the correct answer has been shown
     void Round();                           // typical quiz's round
                                             
+    void PrintPq();                         // debug
     
 public:
     // build.cpp
